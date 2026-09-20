@@ -4,7 +4,7 @@ from .models import Route, Schedule
 from datetime import datetime
 
 def home(request):
-    popular_routes = Route.objects.filter(is_active=True)[:6]
+    popular_routes = Route.objects.filter(is_active=True).order_by('-id')[:6]
     return render(request, 'buses/home.html', {'popular_routes': popular_routes})
 
 def search(request):
@@ -13,6 +13,7 @@ def search(request):
     travel_date = request.GET.get('travel_date')
     
     schedules = []
+    all_routes = None
     if source and destination and travel_date:
         try:
             date_obj = datetime.strptime(travel_date, '%Y-%m-%d').date()
@@ -25,12 +26,15 @@ def search(request):
             )
         except ValueError:
             pass # Invalid date format
+    else:
+        all_routes = Route.objects.filter(is_active=True)
 
     context = {
         'schedules': schedules,
         'source': source,
         'destination': destination,
-        'travel_date': travel_date
+        'travel_date': travel_date,
+        'all_routes': all_routes
     }
     return render(request, 'buses/search.html', context)
 

@@ -1,5 +1,12 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 400px; width: 100%; border-radius: 0 0 16px 16px; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="bg-primary-subtle py-4 mb-5">
     <div class="container">
@@ -38,9 +45,47 @@
     </h4>
 
     {% if not source %}
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-search display-1 mb-3"></i>
-            <p class="fs-5">Enter your travel details above to search for buses.</p>
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3 text-secondary">All Available Routes</h4>
+            </div>
+            {% for route in all_routes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 card-hover h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2"><i class="bi bi-signpost-split me-1"></i> {{ route.distance }} km</span>
+                            <span class="text-success fw-bold">₹{{ route.base_fare }}</span>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-grow-1">
+                            <div class="text-center w-40">
+                                <h5 class="fw-bold mb-0 text-truncate" title="{{ route.source }}">{{ route.source }}</h5>
+                            </div>
+                            <div class="text-muted px-2">
+                                <i class="bi bi-arrow-right fs-4"></i>
+                            </div>
+                            <div class="text-center w-40">
+                                <h5 class="fw-bold mb-0 text-truncate" title="{{ route.destination }}">{{ route.destination }}</h5>
+                            </div>
+                        </div>
+                        <hr class="text-muted my-3 opacity-25">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><i class="bi bi-clock me-1"></i> ~{{ route.estimated_duration }}</small>
+                            <form action="{% url 'search' %}" method="GET" class="route-form">
+                                <input type="hidden" name="source" value="{{ route.source }}">
+                                <input type="hidden" name="destination" value="{{ route.destination }}">
+                                <button type="submit" class="btn btn-sm btn-primary-custom rounded-pill px-3">Book Now</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-signpost-split display-1 mb-3 text-secondary"></i>
+                <p class="fs-5">No routes available right now.</p>
+            </div>
+            {% endfor %}
         </div>
     {% elif not schedules %}
         <div class="text-center py-5 text-muted">
@@ -84,24 +129,114 @@
                                     <span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i> Only {{ schedule.available_seats }} left!</span>
                                 {% endif %}
                             </p>
-                            <a href="{% url 'select_seat' schedule.id %}" class="btn btn-primary-custom rounded-pill px-4">View Seats</a>
+                            <div class="d-grid gap-2 w-100">
+                                <a href="{% url 'select_seat' schedule.id %}" class="btn btn-primary-custom rounded-pill">View Seats</a>
+                                <button type="button" class="btn btn-outline-custom rounded-pill view-map-btn" 
+                                    data-bs-toggle="modal" data-bs-target="#mapModal"
+                                    data-stops='[{% for stop in schedule.route.stops.all %}{"name": "{{ stop.stop_name }}", "lat": {{ stop.latitude|default:"null" }}, "lng": {{ stop.longitude|default:"null" }}}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                                    data-route="{{ schedule.route.source }} to {{ schedule.route.destination }}">
+                                    <i class="bi bi-map me-1"></i> Route Map
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+        </div>
     {% endif %}
 </div>
+
+<!-- Map Modal -->
+<div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-primary-subtle text-primary border-0 rounded-top-4">
+        <h5 class="modal-title fw-bold" id="mapModalLabel"><i class="bi bi-map me-2"></i> Route Map: <span id="mapRouteName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div id="map"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var today = new Date().toISOString().split('T')[0];
         var dateInput = document.getElementById('travelDate');
         if(dateInput) {
             dateInput.setAttribute('min', today);
+            if (!dateInput.value) {
+                dateInput.value = today;
+            }
+        }
+
+        // Add hidden dates to all route forms
+        var forms = document.querySelectorAll('form.route-form');
+        forms.forEach(function(form) {
+            if(!form.querySelector('input[type="date"]')) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'travel_date';
+                input.value = today;
+                form.appendChild(input);
+            }
+        });
+
+        var map = null;
+        var markers = [];
+        var polyline = null;
+
+        const mapModalEl = document.getElementById('mapModal');
+        if (mapModalEl) {
+            mapModalEl.addEventListener('shown.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const stopsData = button.getAttribute('data-stops');
+                const routeName = button.getAttribute('data-route');
+                document.getElementById('mapRouteName').innerText = routeName;
+                
+                let stops = [];
+                try {
+                    stops = JSON.parse(stopsData);
+                } catch(e) { console.error("Error parsing stops", e); }
+
+                if (!map) {
+                    map = L.map('map').setView([11.0, 79.0], 8);
+                    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+                    }).addTo(map);
+                }
+                
+                // Clear existing
+                markers.forEach(m => map.removeLayer(m));
+                markers = [];
+                if (polyline) map.removeLayer(polyline);
+                
+                const latlngs = [];
+                stops.forEach(stop => {
+                    if (stop.lat && stop.lng) {
+                        const marker = L.marker([stop.lat, stop.lng]).addTo(map)
+                            .bindPopup(`<b>${stop.name}</b>`);
+                        markers.push(marker);
+                        latlngs.push([stop.lat, stop.lng]);
+                    }
+                });
+
+                if (latlngs.length > 0) {
+                    polyline = L.polyline(latlngs, {color: 'red', weight: 4}).addTo(map);
+                    map.fitBounds(polyline.getBounds(), {padding: [30, 30]});
+                }
+                
+                // Fix map rendering issue in modal
+                setTimeout(function(){ map.invalidateSize(); }, 100);
+            });
         }
     });
 </script>
