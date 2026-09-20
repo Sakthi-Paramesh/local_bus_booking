@@ -51,7 +51,7 @@
                                 {% endif %}
                             </td>
                             <td class="text-end px-4">
-                                {% if booking.status != 'CANCELLED' and hasattr(booking, 'ticket') %}
+                                {% if booking.status != 'CANCELLED' and booking.ticket %}
                                     <a href="{% url 'ticket_view' booking.ticket.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1">View</a>
                                 {% endif %}
                                 

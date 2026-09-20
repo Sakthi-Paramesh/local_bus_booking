@@ -1,8 +1,16 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section position-relative">
+    <!-- CM Badge -->
+    <div class="position-absolute" style="top: 20px; left: 30px; text-align: center; z-index: 10;">
+        <div class="shadow-lg mx-auto" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid white; overflow: hidden; background-color: white;">
+            <img src="{% static 'images/484521b8201636910726040ab0a6b677.jpg' %}" alt="Honourable CM" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+        </div>
+        <div class="text-white fw-bold mt-2" style="font-size: 0.9rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); line-height: 1.2;">Honourable CM<br>of Tamilnadu</div>
+    </div>
+
     <div class="container">
         <div class="row justify-content-center text-center mb-5">
             <div class="col-lg-8">
@@ -14,11 +22,11 @@
         <!-- Search Box -->
         <div class="row justify-content-center mt-4">
             <div class="col-lg-10">
-                <div class="card p-4 border-0 shadow-lg" style="border-radius: 15px;">
+                <div class="card p-4 border-0 shadow-lg text-dark" style="border-radius: 15px;">
                     <form action="{% url 'search' %}" method="GET">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-3">
-                                <label class="form-label text-white fw-semibold mb-1"><i class="bi bi-geo-alt-fill text-primary me-2"></i>From</label>
+                                <label class="form-label text-dark fw-semibold mb-1"><i class="bi bi-geo-alt-fill text-primary me-2"></i>From</label>
                                 <input type="text" class="form-control form-control-lg bg-light border-0" name="source" placeholder="Leaving from" required>
                             </div>
                             
@@ -30,11 +38,11 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="form-label text-white fw-semibold mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>To</label>
+                                <label class="form-label text-dark fw-semibold mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>To</label>
                                 <input type="text" class="form-control form-control-lg bg-light border-0" name="destination" placeholder="Going to" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label text-white fw-semibold mb-1"><i class="bi bi-calendar-event-fill text-success me-2"></i>Date of Journey</label>
+                                <label class="form-label text-dark fw-semibold mb-1"><i class="bi bi-calendar-event-fill text-success me-2"></i>Date of Journey</label>
                                 <input type="date" class="form-control form-control-lg bg-light border-0" name="travel_date" id="travelDate" required>
                             </div>
                             <div class="col-md-2">
@@ -72,7 +80,7 @@
             </div>
             <div class="col-md-4">
                 <div class="card h-100 p-4 border-0 rounded-4 card-hover">
-                    <div class="display-4 text-white mb-3"><i class="bi bi-qr-code-scan"></i></div>
+                    <div class="display-4 text-warning mb-3"><i class="bi bi-qr-code-scan"></i></div>
                     <h5 class="fw-bold">Digital QR Tickets</h5>
                     <p class="text-muted mb-0">Show your QR ticket on your mobile device to the conductor.</p>
                 </div>

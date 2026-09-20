@@ -182,7 +182,7 @@
         const summarySeat = document.getElementById('summarySeat');
         const summaryAmount = document.getElementById('summaryAmount');
         const proceedBtn = document.getElementById('proceedBtn');
-        const fare = {{ schedule.fare|floatformat:2 }};
+        const fare = parseFloat("{{ schedule.fare|floatformat:2 }}");
         
         let currentlySelected = null;
         

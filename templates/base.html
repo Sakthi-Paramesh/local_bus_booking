@@ -21,13 +21,17 @@
         :root {
             --primary-blue: #ff6600; /* Re-purposing the variable to orange to avoid breaking class names */
             --secondary-navy: #1a1a1a;
-            --bg-light: #121212;
-            --text-dark: #f8f9fa;
+            --bg-light: #f8f9fa; /* Light background */
+            --text-dark: #212529; /* Dark text for light mode */
         }
         
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-light);
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
             color: var(--text-dark);
             display: flex;
             flex-direction: column;
@@ -74,10 +78,10 @@
         .card {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background-color: #1e1e1e; /* Darker card background */
-            color: #f8f9fa;
+            background-color: #ffffff;
+            color: var(--text-dark);
         }
         
         .card-hover:hover {
@@ -85,16 +89,9 @@
             box-shadow: 0 10px 25px rgba(255, 102, 0, 0.2);
         }
         
-        @keyframes heroZoom {
-            0% { background-size: 100%; }
-            50% { background-size: 110%; }
-            100% { background-size: 100%; }
-        }
-
         .hero-section {
-            background: linear-gradient(rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.9)), url('{% static "images/tn_bus_hero.jpg" %}') no-repeat center center;
+            background: linear-gradient(rgba(18, 18, 18, 0.3), rgba(18, 18, 18, 0.6)), url('{% static "images/dd5114e4c8dd0bce083be415be1e9837.jpg" %}') no-repeat center center;
             background-size: cover;
-            animation: heroZoom 20s infinite ease-in-out;
             color: white;
             padding: 100px 0;
             text-align: center;
@@ -122,47 +119,27 @@
             z-index: 1050;
         }
 
-        /* Dark Theme Overrides for Bootstrap */
-        .bg-light, .bg-white {
-            background-color: #1e1e1e !important;
-            color: #f8f9fa !important;
+        /* Custom Overrides */
+        .bg-primary-subtle {
+            background-color: #fff0e6 !important; /* Light orange tint */
+            color: #cc5200 !important;
         }
+        .text-muted {
+            color: #6c757d !important;
+        }
+        
+        /* Input Fields Border */
         .form-control, .form-select {
-            background-color: #2c2c2c !important;
-            color: #fff !important;
-            border: 1px solid #444 !important;
-            font-family: 'Poppins', sans-serif !important;
+            border: 1px solid #212529 !important;
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border-radius: 8px;
         }
-        .form-control:focus {
-            background-color: #333 !important;
-            color: #fff !important;
+        .form-control:focus, .form-select:focus {
             border-color: var(--primary-blue) !important;
             box-shadow: 0 0 0 0.25rem rgba(255, 102, 0, 0.25) !important;
         }
-        ::placeholder {
-            color: #adb5bd !important;
-            opacity: 1;
-        }
-        :-ms-input-placeholder {
-            color: #adb5bd !important;
-        }
-        ::-ms-input-placeholder {
-            color: #adb5bd !important;
-        }
-        .table {
-            color: #f8f9fa;
-        }
-        .table-light th, .table-light td, .table-light {
-            background-color: #2c2c2c !important;
-            color: #f8f9fa !important;
-            border-color: #444 !important;
-        }
-        .text-muted {
-            color: #adb5bd !important;
-        }
-        .border-light, .border-bottom, .border-top {
-            border-color: #444 !important;
-        }
+        
     </style>
     {% block extra_css %}{% endblock %}
 </head>
