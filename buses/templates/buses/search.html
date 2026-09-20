@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-primary-subtle py-4 mb-5">
+    <div class="container">
+        <!-- Modify Search Form -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <form action="{% url 'search' %}" method="GET">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-semibold mb-1">From</label>
+                            <input type="text" class="form-control" name="source" value="{{ source|default:'' }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-semibold mb-1">To</label>
+                            <input type="text" class="form-control" name="destination" value="{{ destination|default:'' }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted fw-semibold mb-1">Date</label>
+                            <input type="date" class="form-control" name="travel_date" id="travelDate" value="{{ travel_date|default:'' }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary-custom w-100 fw-bold">Modify Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <h4 class="fw-bold mb-4">Search Results 
+        {% if source and destination %}
+            <span class="text-muted fs-5 fw-normal">({{ source }} to {{ destination }})</span>
+        {% endif %}
+    </h4>
+
+    {% if not source %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-search display-1 mb-3"></i>
+            <p class="fs-5">Enter your travel details above to search for buses.</p>
+        </div>
+    {% elif not schedules %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-emoji-frown display-1 mb-3 text-warning"></i>
+            <h4>No buses found</h4>
+            <p>We couldn't find any buses for the selected route and date.</p>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            {% for schedule in schedules %}
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 card-hover overflow-hidden">
+                    <div class="row g-0">
+                        <div class="col-md-3 bg-light p-4 d-flex flex-column justify-content-center border-end">
+                            <h5 class="fw-bold mb-1 text-primary">{{ schedule.bus.bus_number }}</h5>
+                            <span class="badge bg-secondary mb-2" style="width: fit-content;">{{ schedule.bus.bus_type }}</span>
+                            <small class="text-muted">{{ schedule.bus.bus_name }}</small>
+                        </div>
+                        <div class="col-md-6 p-4">
+                            <div class="row text-center align-items-center">
+                                <div class="col-4">
+                                    <h4 class="fw-bold mb-0">{{ schedule.departure_time|time:"H:i" }}</h4>
+                                    <small class="text-muted">{{ schedule.route.source }}</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted small mb-1"><i class="bi bi-clock"></i> {{ schedule.route.estimated_duration }}</div>
+                                    <hr class="my-0">
+                                </div>
+                                <div class="col-4">
+                                    <h4 class="fw-bold mb-0">{{ schedule.arrival_time|time:"H:i" }}</h4>
+                                    <small class="text-muted">{{ schedule.route.destination }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 p-4 d-flex flex-column justify-content-center align-items-md-end bg-light">
+                            <h3 class="fw-bold text-success mb-1">₹{{ schedule.fare }}</h3>
+                            <p class="text-muted small mb-3">
+                                {% if schedule.available_seats > 10 %}
+                                    <span class="text-success"><i class="bi bi-person-check-fill"></i> {{ schedule.available_seats }} Seats Available</span>
+                                {% else %}
+                                    <span class="text-danger"><i class="bi bi-exclamation-circle-fill"></i> Only {{ schedule.available_seats }} left!</span>
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'select_seat' schedule.id %}" class="btn btn-primary-custom rounded-pill px-4">View Seats</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date().toISOString().split('T')[0];
+        var dateInput = document.getElementById('travelDate');
+        if(dateInput) {
+            dateInput.setAttribute('min', today);
+        }
+    });
+</script>
+{% endblock %}

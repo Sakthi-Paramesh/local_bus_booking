@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="bg-primary-subtle py-4 mb-4">
+    <div class="container">
+        <h3 class="fw-bold mb-0">Passenger Dashboard</h3>
+        <p class="text-muted mb-0">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary text-white text-center p-4">
+                <i class="bi bi-ticket-detailed display-4 mb-2"></i>
+                <h2 class="fw-bold">{{ total_bookings }}</h2>
+                <span class="opacity-75">Total Bookings</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info text-white text-center p-4">
+                <i class="bi bi-calendar-check display-4 mb-2"></i>
+                <h2 class="fw-bold">{{ upcoming_trips }}</h2>
+                <span class="opacity-75">Upcoming Trips</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-success text-white text-center p-4">
+                <i class="bi bi-check2-circle display-4 mb-2"></i>
+                <h2 class="fw-bold">{{ completed_trips }}</h2>
+                <span class="opacity-75">Completed Trips</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white text-center p-4">
+                <i class="bi bi-x-circle display-4 mb-2"></i>
+                <h2 class="fw-bold">{{ cancelled_trips }}</h2>
+                <span class="opacity-75">Cancelled Trips</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'search' %}" class="btn btn-outline-primary p-3 text-start rounded-3">
+                            <i class="bi bi-search fs-4 text-primary me-3 align-middle"></i> 
+                            <span class="fw-bold align-middle">Search Buses</span>
+                        </a>
+                        <a href="{% url 'my_bookings' %}" class="btn btn-outline-success p-3 text-start rounded-3">
+                            <i class="bi bi-ticket-perforated fs-4 text-success me-3 align-middle"></i> 
+                            <span class="fw-bold align-middle">View My Bookings</span>
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary p-3 text-start rounded-3">
+                            <i class="bi bi-person-gear fs-4 text-secondary me-3 align-middle"></i> 
+                            <span class="fw-bold align-middle">Update Profile</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-4 px-4 pb-0">
+                    <h5 class="fw-bold mb-0">Recent Bookings</h5>
+                    <a href="{% url 'my_bookings' %}" class="btn btn-sm btn-link text-decoration-none">View All</a>
+                </div>
+                <div class="card-body p-4">
+                    {% if not recent_bookings %}
+                        <div class="text-center text-muted py-4">
+                            <p>You have no recent bookings.</p>
+                        </div>
+                    {% else %}
+                        <div class="list-group list-group-flush border-0">
+                            {% for booking in recent_bookings %}
+                                <div class="list-group-item px-0 py-3 border-bottom border-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded p-3 me-3 text-center" style="width: 60px;">
+                                                <small class="d-block text-muted text-uppercase" style="font-size: 0.7rem;">{{ booking.travel_date|date:"M" }}</small>
+                                                <strong class="d-block fs-5">{{ booking.travel_date|date:"d" }}</strong>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1">{{ booking.schedule.route.source }} to {{ booking.schedule.route.destination }}</h6>
+                                                <small class="text-muted">{{ booking.booking_id }} &bull; {{ booking.schedule.departure_time|time:"H:i" }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            {% if booking.status == 'CONFIRMED' %}
+                                                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 mb-1 d-block">CONFIRMED</span>
+                                            {% elif booking.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1 mb-1 d-block">CANCELLED</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 mb-1 d-block">{{ booking.status }}</span>
+                                            {% endif %}
+                                            {% if booking.status != 'CANCELLED' %}
+                                                <a href="{% url 'ticket_view' booking.ticket.id %}" class="small text-decoration-none">View Ticket <i class="bi bi-chevron-right"></i></a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style type="text/css" media="print">
+    body * {
+        visibility: hidden;
+    }
+    #ticket-container, #ticket-container * {
+        visibility: visible;
+    }
+    #ticket-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .no-print {
+        display: none !important;
+    }
+</style>
+<style>
+    .ticket-card {
+        border: 2px dashed #dee2e6;
+        border-radius: 15px;
+        position: relative;
+        background-color: #fff;
+    }
+    
+    .ticket-header {
+        background-color: var(--primary-blue);
+        color: white;
+        padding: 20px;
+        border-top-left-radius: 13px;
+        border-top-right-radius: 13px;
+        text-align: center;
+    }
+    
+    .ticket-body {
+        padding: 30px;
+    }
+    
+    .qr-container img {
+        width: 150px;
+        height: 150px;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <h4 class="fw-bold mb-0">Your Ticket</h4>
+                <div>
+                    <button class="btn btn-outline-secondary me-2 rounded-pill px-3" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print Ticket
+                    </button>
+                    <a href="{% url 'my_bookings' %}" class="btn btn-primary-custom rounded-pill px-3">
+                        <i class="bi bi-list-ul me-1"></i> My Bookings
+                    </a>
+                </div>
+            </div>
+
+            <!-- Digital Ticket -->
+            <div class="ticket-card shadow-lg" id="ticket-container">
+                <div class="ticket-header">
+                    <h2 class="fw-bold mb-0 ls-1">GOVBUS</h2>
+                    <p class="mb-0 text-white-50">DIGITAL BUS TICKET</p>
+                </div>
+                
+                <div class="ticket-body">
+                    <div class="row align-items-center mb-4 pb-4 border-bottom">
+                        <div class="col-sm-8">
+                            <h5 class="text-muted mb-1">Ticket Number</h5>
+                            <h3 class="fw-bold mb-0 text-primary">{{ ticket.ticket_number }}</h3>
+                        </div>
+                        <div class="col-sm-4 text-sm-end mt-3 mt-sm-0">
+                            {% if ticket.booking.status == 'CONFIRMED' %}
+                                <span class="badge bg-success fs-6 py-2 px-3 rounded-pill">CONFIRMED</span>
+                            {% elif ticket.booking.status == 'CANCELLED' %}
+                                <span class="badge bg-danger fs-6 py-2 px-3 rounded-pill">CANCELLED</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6 py-2 px-3 rounded-pill">{{ ticket.booking.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-sm-6">
+                            <small class="text-muted d-block mb-1">Passenger Name</small>
+                            <span class="fw-bold fs-5">{{ ticket.booking.passenger_name }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <small class="text-muted d-block mb-1">Booking ID</small>
+                            <span class="fw-bold">{{ ticket.booking.booking_id }}</span>
+                        </div>
+                        
+                        <div class="col-12 mt-3">
+                            <div class="bg-light p-3 rounded-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="fw-bold mb-0">{{ ticket.booking.schedule.route.source }}</h5>
+                                </div>
+                                <div class="text-muted px-3 text-center">
+                                    <i class="bi bi-arrow-right fs-4 d-block"></i>
+                                    <small>{{ ticket.booking.schedule.route.estimated_duration }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <h5 class="fw-bold mb-0">{{ ticket.booking.schedule.route.destination }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-sm-4">
+                            <small class="text-muted d-block mb-1">Date</small>
+                            <span class="fw-bold">{{ ticket.booking.schedule.travel_date }}</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <small class="text-muted d-block mb-1">Departure Time</small>
+                            <span class="fw-bold">{{ ticket.booking.schedule.departure_time|time:"H:i" }}</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <small class="text-muted d-block mb-1">Bus Number</small>
+                            <span class="fw-bold">{{ ticket.booking.schedule.bus.bus_number }}</span>
+                        </div>
+                        
+                        <div class="col-sm-4 mt-3">
+                            <small class="text-muted d-block mb-1">Seat No.</small>
+                            <span class="fw-bold fs-4 text-primary">{{ ticket.booking.seat_number|stringformat:"02d" }}</span>
+                        </div>
+                        <div class="col-sm-4 mt-3">
+                            <small class="text-muted d-block mb-1">Total Fare</small>
+                            <span class="fw-bold fs-5 text-success">₹{{ ticket.booking.amount }}</span>
+                        </div>
+                        <div class="col-sm-4 mt-3">
+                            <small class="text-muted d-block mb-1">Booked On</small>
+                            <span class="fw-bold">{{ ticket.booking.booking_date|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center pt-4 border-top qr-container">
+                        {% if ticket.qr_code %}
+                            <img src="{{ ticket.qr_code.url }}" alt="Ticket QR Code">
+                        {% else %}
+                            <div class="border p-4 text-muted d-inline-block rounded-3">QR Not Available</div>
+                        {% endif %}
+                        <p class="text-muted small mt-2 mb-0">Show this QR code to the conductor</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

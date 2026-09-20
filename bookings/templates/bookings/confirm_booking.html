@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4">
+                    <h4 class="fw-bold mb-0">Confirm Your Booking</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Journey Details -->
+                    <div class="bg-light p-4 rounded-3 mb-4">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Route</small>
+                                <span class="fw-bold">{{ schedule.route.source }} &rarr; {{ schedule.route.destination }}</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <small class="text-muted d-block mb-1">Bus</small>
+                                <span class="fw-bold">{{ schedule.bus.bus_number }} ({{ schedule.bus.bus_type }})</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <small class="text-muted d-block mb-1">Date</small>
+                                <span class="fw-bold">{{ schedule.travel_date }}</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <small class="text-muted d-block mb-1">Time</small>
+                                <span class="fw-bold">{{ schedule.departure_time|time:"H:i" }}</span>
+                            </div>
+                            <div class="col-sm-4">
+                                <small class="text-muted d-block mb-1">Seat Number</small>
+                                <span class="badge bg-primary fs-6">{{ seat_number|stringformat:"02d" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Passenger Form -->
+                    <form action="{% url 'confirm_booking' %}" method="POST">
+                        {% csrf_token %}
+                        <h5 class="fw-bold mb-3">Passenger Details</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Full Name</label>
+                                <input type="text" name="passenger_name" class="form-control" value="{{ user.get_full_name|default:user.username }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Phone Number</label>
+                                <input type="tel" name="passenger_phone" class="form-control" value="{{ user.profile.phone|default:'' }}" required pattern="[0-9]{10}">
+                            </div>
+                        </div>
+
+                        <!-- Payment Summary Demo -->
+                        <div class="border-top pt-4">
+                            <h5 class="fw-bold mb-3">Fare Summary</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Base Fare</span>
+                                <span>₹{{ schedule.fare }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Taxes & Fees (Demo)</span>
+                                <span>₹0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="fw-bold fs-5">Total Amount</span>
+                                <span class="fw-bold fs-5 text-success">₹{{ schedule.fare }}</span>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">Confirm Booking & Pay</button>
+                                <a href="{% url 'select_seat' schedule.id %}" class="btn btn-outline-secondary rounded-pill">Cancel & Go Back</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white text-center py-4 border-0">
+                    <h3 class="fw-bold mb-0">Create an Account</h3>
+                    <p class="mb-0 text-white-50">Join GovBus for easy ticket booking</p>
+                </div>
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h5 class="fw-bold mb-3 text-muted border-bottom pb-2">Account Details</h5>
+                        <div class="row g-3 mb-4">
+                            {% for field in user_form %}
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted fw-semibold">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <h5 class="fw-bold mb-3 text-muted border-bottom pb-2">Profile Details</h5>
+                        <div class="row g-3 mb-4">
+                            {% for field in profile_form %}
+                                <div class="col-md-6 {% if field.name == 'address' %}col-md-12{% endif %}">
+                                    <label class="form-label text-muted fw-semibold">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <hr class="w-100 border-secondary">
+                            <span class="px-3 text-muted small text-uppercase fw-bold">Finish</span>
+                            <hr class="w-100 border-secondary">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 btn-lg rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, var(--primary-blue), #ff8c00);">Register Account <i class="bi bi-arrow-right-short ms-2 fs-5 align-middle"></i></button>
+                    </form>
+                    
+                    <div class="text-center mt-5">
+                        <p class="text-muted mb-0">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-bold" style="color: var(--primary-blue);">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add bootstrap classes to form fields
+    document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(function(input) {
+            if (input.type !== 'submit' && input.type !== 'hidden') {
+                input.classList.add('form-control');
+                input.classList.add('bg-light');
+                input.classList.add('border-0');
+                input.classList.add('py-3'); // Larger touch target
+            }
+        });
+    });
+</script>
+{% endblock %}
